@@ -1,0 +1,18 @@
+schema_version = "1.0.0"
+
+id = "knot126_tts"
+version = "1.0.0"
+name = "Knot126's easy TTS extension"
+tagline = "Yip"
+maintainer = "Knot126"
+type = "add-on"
+
+blender_version_min = "5.0.0"
+
+license = [
+  "SPDX:MIT-0",
+]
+
+[permissions]
+network = "Make TTS requests to Google's servers"
+files = "Write asset files to disk"
