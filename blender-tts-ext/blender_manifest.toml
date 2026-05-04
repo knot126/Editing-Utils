@@ -1,13 +1,13 @@
 schema_version = "1.0.0"
 
 id = "knot126_tts"
-version = "1.0.0"
+version = "1.1.0"
 name = "Knot126's easy TTS extension"
 tagline = "Yip"
 maintainer = "Knot126"
 type = "add-on"
 
-blender_version_min = "5.0.0"
+blender_version_min = "5.1.1"
 
 license = [
   "SPDX:MIT-0",

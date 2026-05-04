@@ -3,7 +3,7 @@ import subprocess
 import os
 
 from pathlib import Path
-from bpy.props import IntProperty, StringProperty
+from bpy.props import IntProperty, StringProperty, EnumProperty
 
 CLASSES_TO_LOAD = []
 
@@ -15,7 +15,7 @@ def generate_tts_file(path, text):
 	subprocess.run(["gtts-cli", text, "--output", path], check=True)
 
 def add_strip_at_marker_with_channel_for_context(context, channel, path):
-	context.sequencer_scene.sequence_editor.strips.new_sound(path.split("/")[-1].replace(".", "_"), path, channel, context.sequencer_scene.frame_current)
+	return context.sequencer_scene.sequence_editor.strips.new_sound(path.split("/")[-1].replace(".", "_"), path, channel, context.sequencer_scene.frame_current)
 
 def find_filename(path):
 	i = 0
@@ -47,6 +47,19 @@ class GenerateTTSClip(bpy.types.Operator):
 		default="",
 	)
 	
+	voice: EnumProperty(
+		name="Voice",
+		description="The voice to use aka which pitch shift modifier preset to use",
+		default="none",
+		items=(
+			("none", "Knot", "No changes"),
+			("0.8", "Mule", "0.8 pitch ratio"),
+			("1.1", "KD", "1.1 pitch ratio"),
+			("1.35", "Yorshex", "1.35 pitch ratio"),
+			("0.7", "Bar", "0.7 pitch ratio"),
+		),
+	)
+	
 	def invoke(self, context, event):
 		context.window_manager.invoke_props_dialog(self)
 		return {'RUNNING_MODAL'}
@@ -60,7 +73,28 @@ class GenerateTTSClip(bpy.types.Operator):
 			sound_filepath = find_filename(sound_dir)
 			
 			generate_tts_file(sound_filepath, self.text)
-			add_strip_at_marker_with_channel_for_context(context, self.channel, sound_filepath)
+			strip = add_strip_at_marker_with_channel_for_context(context, self.channel, sound_filepath)
+			
+			# Deselect all
+			bpy.ops.sequencer.select_all(action='DESELECT')
+			
+			# Select ours
+			strip.select = True
+			
+			# Make it the active strip
+			context.scene.sequence_editor.active_strip = strip
+			
+			if self.voice != "none":
+				# I'm not sure why this doesn't work, I think it may be a bug
+				# pitch = strip.modifiers.new('Pitch', 'PITCH')
+				
+				# A little ugly
+				bpy.ops.sequencer.strip_modifier_add(type="PITCH")
+				pitch = context.scene.sequence_editor.strips_all[strip.name].modifiers['Pitch']
+				
+				pitch.mode = "RATIO"
+				pitch.preserve_formant = True
+				pitch.ratio = float(self.voice)
 		except Exception as e:
 			self.report({'ERROR'}, f"{type(e).__name__}: {e}")
 		
