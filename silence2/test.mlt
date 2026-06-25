@@ -1,0 +1,28 @@
+<!-- debug: 30 silent bits -->
+<mlt>
+	<producer id="producer0">
+		<property name="resource">/home/knot/Videos/Personal Videos/2025-11-15_06-49-08.mp4</property>
+	</producer>
+	<playlist id="playlist0">
+		<entry producer="producer0" in="65" out="66"/>
+		<entry producer="producer0" in="135" out="138"/>
+		<entry producer="producer0" in="249" out="250"/>
+		<entry producer="producer0" in="292" out="293"/>
+		<entry producer="producer0" in="405" out="416"/>
+		<entry producer="producer0" in="427" out="439"/>
+		<entry producer="producer0" in="457" out="459"/>
+		<entry producer="producer0" in="490" out="492"/>
+		<entry producer="producer0" in="567" out="568"/>
+		<entry producer="producer0" in="594" out="595"/>
+		<entry producer="producer0" in="686" out="691"/>
+		<entry producer="producer0" in="908" out="912"/>
+		<entry producer="producer0" in="1066" out="1069"/>
+		<entry producer="producer0" in="1131" out="1132"/>
+		<entry producer="producer0" in="1150" out="1171"/>
+		<entry producer="producer0" in="1188" out="1207"/>
+		<entry producer="producer0" in="1316" out="1317"/>
+		<entry producer="producer0" in="1333" out="1363"/>
+		<entry producer="producer0" in="1431" out="1489"/>
+
+	</playlist>
+</mlt>
