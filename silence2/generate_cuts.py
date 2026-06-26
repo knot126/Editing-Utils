@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 import subprocess
 import tempfile
-import sys
 import os
+import xml.sax.saxutils as xml
+
+from argparse import ArgumentParser
 
 # im too lazy to do it properly
 FPS = 30.0
-PADDING = (100/1000)
 
 def find_silence(filename, db, spacing):
 	ffmpeg_command = [
 		"ffmpeg",
-		"-i",filename,
+		"-i", filename,
 		"-af", f"silencedetect=n={db}dB:d={spacing}",
 		"-f", "null", "-"
 	]
@@ -64,11 +65,23 @@ def add_padding(clips, padding):
 		clips[i+1] += padding
 
 def main():
-	video_file = sys.argv[1]
+	parser = ArgumentParser('generate_cuts', description="generate mlt file of video without silent points")
+	parser.add_argument('-t', '--threshold', type=int, default=-35, help="The minium volume that will not be considered silence in dB; positive values are converted to negative values")
+	parser.add_argument('-p', '--padding', type=float, default=100.0, help="How much additional time to add before and after noise regions in ms")
+	parser.add_argument('-s', '--silence-time', type=str, default="300ms", help="The minium time needed for a clip of video to count as silent, as an ffmepg timestamp")
+	parser.add_argument('-i', '--invert', action='store_true', help="Keep silent bits instead")
+	parser.add_argument('input', help="Input video file")
+	args = parser.parse_args()
 	
-	keep_bits = [0.0] + find_silence(video_file, -35, "300ms") + [duration(video_file)]
+	args.threshold = -abs(args.threshold)
+	args.padding /= 1000
+	video_file = args.input
+	
+	keep_bits = [0.0] + find_silence(video_file, args.threshold, args.silence_time) + [duration(video_file)]
+	if args.invert: keep_bits = keep_bits[1:-1]
+	
 	keep_bits = polish_list(keep_bits)
-	add_padding(keep_bits, PADDING)
+	add_padding(keep_bits, args.padding)
 	points = ""
 	
 	for i in range(0, len(keep_bits), 2):
@@ -78,7 +91,7 @@ def main():
 	
 	print(f"""<mlt>
 	<producer id="producer0">
-		<property name="resource">{video_file}</property>
+		<property name="resource">{xml.escape(video_file)}</property>
 	</producer>
 	<playlist id="playlist0">
 {points}
