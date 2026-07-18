@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "knot126_tts"
-version = "1.1.0"
+version = "1.2.0"
 name = "Knot126's easy TTS extension"
 tagline = "Yip"
 maintainer = "Knot126"

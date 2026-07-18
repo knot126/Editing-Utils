@@ -4,6 +4,7 @@ import os
 
 from pathlib import Path
 from bpy.props import IntProperty, StringProperty, EnumProperty
+from bpy_extras.keyconfig_utils import addon_keymap_register, addon_keymap_unregister
 
 CLASSES_TO_LOAD = []
 
@@ -104,17 +105,28 @@ def tts_clip_menu(self, context):
 	self.layout.separator()
 	self.layout.operator(GenerateTTSClip.bl_idname)
 
+keymap = None
+tts_key = None
+
 def register():
+	global tts_key
+	global keymap
+	
 	for cls in CLASSES_TO_LOAD:
 		bpy.utils.register_class(cls)
 	
 	bpy.types.SEQUENCER_MT_add.append(tts_clip_menu)
+	
+	keymap = bpy.context.window_manager.keyconfigs.addon.keymaps.new('Video Sequence Editor', space_type='SEQUENCE_EDITOR')
+	tts_key = keymap.keymap_items.new("tts.generate", "T", "PRESS")
 
 def unregister():
-	for cls in reversed(CLASSES_TO_LOAD):
-		bpy.utils.unregister_class(cls)
+	keymap.keymap_items.remove(tts_key)
 	
 	bpy.types.SEQUENCER_MT_add.remove(tts_clip_menu)
+	
+	for cls in reversed(CLASSES_TO_LOAD):
+		bpy.utils.unregister_class(cls)
 
 if __name__ == "__main__":
 	register()
