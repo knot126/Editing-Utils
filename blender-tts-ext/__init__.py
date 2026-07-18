@@ -4,7 +4,7 @@ import os
 
 from pathlib import Path
 from bpy.props import IntProperty, StringProperty, EnumProperty
-from bpy_extras.keyconfig_utils import addon_keymap_register, addon_keymap_unregister
+from gtts.tts import gTTS
 
 CLASSES_TO_LOAD = []
 
@@ -12,8 +12,8 @@ def registered(cls):
 	CLASSES_TO_LOAD.append(cls)
 	return cls
 
-def generate_tts_file(path, text):
-	subprocess.run(["gtts-cli", text, "--output", path], check=True)
+def generate_tts_file(path, text, tld):
+	gTTS(text, tld=tld).save(path)
 
 def add_strip_at_marker_with_channel_for_context(context, channel, path):
 	return context.sequencer_scene.sequence_editor.strips.new_sound(path.split("/")[-1].replace(".", "_"), path, channel, context.sequencer_scene.frame_current)
@@ -46,6 +46,7 @@ class GenerateTTSClip(bpy.types.Operator):
 		name="Text",
 		description="Text to convert to speech",
 		default="",
+		options={'SKIP_SAVE'},
 	)
 	
 	voice: EnumProperty(
@@ -61,9 +62,32 @@ class GenerateTTSClip(bpy.types.Operator):
 		),
 	)
 	
+	accent: EnumProperty(
+		name="Accent",
+		description="The accent of the speaker",
+		default="com",
+		items=(
+			("com", "Default", "Based on your location"),
+			("com.au", "Australian", "Australia"),
+			("co.uk", "British", "United Kingdom"),
+			("us", "US", "United States"),
+			("ca", "Canadian", "Canada"),
+			("co.in", "Indian", "India"),
+			("ie", "Irish", "Ireland"),
+			("co.za", "South African", "South Africa"),
+			("com.ng", "Nigerian", "Nigeria"),
+		),
+	)
+	
 	def invoke(self, context, event):
 		context.window_manager.invoke_props_dialog(self)
 		return {'RUNNING_MODAL'}
+	
+	def draw(self, context):
+		self.layout.prop(self, "voice")
+		self.layout.prop(self, "accent")
+		self.layout.textbox(self, "text", placeholder="Type here...")
+		self.layout.prop(self, "channel")
 	
 	def execute(self, context):
 		try:
@@ -73,7 +97,7 @@ class GenerateTTSClip(bpy.types.Operator):
 			sound_dir = str(Path(context.blend_data.filepath).parent)
 			sound_filepath = find_filename(sound_dir)
 			
-			generate_tts_file(sound_filepath, self.text)
+			generate_tts_file(sound_filepath, self.text, self.accent)
 			strip = add_strip_at_marker_with_channel_for_context(context, self.channel, sound_filepath)
 			
 			# Deselect all
